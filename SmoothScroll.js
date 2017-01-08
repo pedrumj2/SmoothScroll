@@ -8,7 +8,7 @@ var SmoothScroll = function(__dispatch){
     _self.private = {  
         busy : false, 
         //the scroll animation duration
-        ANIMETIME : 300, 
+        ANIMETIME : 500, 
         //The time left for the scroll animation
         animTimeLeft : -1, 
         //the amount of scroll left for the animation
@@ -55,23 +55,27 @@ var SmoothScroll = function(__dispatch){
         create_effect(){
             if (INNER.scrollDone == true){
                 INNER.scrollDone = false;
-                var _timeDiff = Date.now() - INNER.pastTimeStamp;
-                INNER.animTimeLeft =  INNER.animTimeLeft-_timeDiff;
-                INNER.count = Math.floor(INNER.animTimeLeft/16)+1;
-                INNER.dopixel =INNER.get_pixel_quad(INNER.scrollLeft, INNER.scrollTotal); 
-                //This is a function you want to call on the on scroll event.
-                INNER.dispatch();
+  
                 window.requestAnimationFrame(INNER.do_scroll);
                 
             }
         }, 
         do_scroll(){
-            window.scrollBy(0, INNER.dopixel);
-            INNER.pastTimeStamp=Date.now();
-            INNER.scrollLeft =INNER.scrollLeft-INNER.dopixel;
+                         var _timeDiff = Date.now() - INNER.pastTimeStamp;
+                INNER.animTimeLeft =  INNER.animTimeLeft-_timeDiff;
+                INNER.count = Math.floor(INNER.animTimeLeft/16)+1;
+                INNER.pastTimeStamp=Date.now();
+                INNER.dopixel =INNER.get_pixel_quad(INNER.scrollLeft, INNER.scrollTotal); 
+               // console.log(INNER.dopixel + " " + INNER.count);
+                //This is a function you want to call on the on scroll event.
+                
+                 window.scrollBy(0, INNER.dopixel);
+                INNER.scrollLeft =INNER.scrollLeft-INNER.dopixel;
+                INNER.dispatch();
             INNER.scrollDone = true;
             if (INNER.count > 1){
-                    window.setTimeout(INNER.create_effect, 4);
+                   // window.setTimeout(INNER.create_effect, 8);
+                   window.requestAnimationFrame(INNER.do_scroll);
                 }
                 else{
                     INNER.busy = false;

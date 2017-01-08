@@ -1,18 +1,24 @@
 /*
-    Generates a smooth scroll effect for the document. 
+    Generates a smooth scroll effect for the document.
+    The dispatch parameter is function you want to call on the
+    onscroll event. For example like a parallex effect 
 */
-var SmoothScroll = function(){
+var SmoothScroll = function(__dispatch){
     var _self = this;
     _self.private = {  
         busy : false, 
         //the scroll animation duration
-        ANIMETIME : 400, 
+        ANIMETIME : 300, 
         //The time left for the scroll animation
         animTimeLeft : -1, 
         //the amount of scroll left for the animation
         scrollLeft : -1, 
         pastTimeStamp : -1, 
         scrollTotal : -1, 
+        scrollDone : true, 
+        dopixel : 0, 
+        count : 0, 
+        dispatch : __dispatch, 
      
         set_handlers(){
             window.addEventListener('wheel',  INNER.wheel_handler);
@@ -47,21 +53,30 @@ var SmoothScroll = function(){
         }, 
    
         create_effect(){
-            var _timeDiff = Date.now() - INNER.pastTimeStamp;
-            INNER.animTimeLeft =  INNER.animTimeLeft-_timeDiff;
-            var _count = Math.floor(INNER.animTimeLeft/16)+1;
-            var _pixel =INNER.get_pixel_quad(INNER.scrollLeft, INNER.scrollTotal); 
-            window.scrollBy(0, _pixel);
-            if (_count > 1){
-                window.requestAnimationFrame(INNER.create_effect);
-                INNER.pastTimeStamp=Date.now();
-                INNER.scrollLeft =INNER.scrollLeft-_pixel;
-            }
-            else{
-                INNER.busy = false;
+            if (INNER.scrollDone == true){
+                INNER.scrollDone = false;
+                var _timeDiff = Date.now() - INNER.pastTimeStamp;
+                INNER.animTimeLeft =  INNER.animTimeLeft-_timeDiff;
+                INNER.count = Math.floor(INNER.animTimeLeft/16)+1;
+                INNER.dopixel =INNER.get_pixel_quad(INNER.scrollLeft, INNER.scrollTotal); 
+                //This is a function you want to call on the on scroll event.
+                INNER.dispatch();
+                window.requestAnimationFrame(INNER.do_scroll);
+                
             }
         }, 
-
+        do_scroll(){
+            window.scrollBy(0, INNER.dopixel);
+            INNER.pastTimeStamp=Date.now();
+            INNER.scrollLeft =INNER.scrollLeft-INNER.dopixel;
+            INNER.scrollDone = true;
+            if (INNER.count > 1){
+                    window.setTimeout(INNER.create_effect, 4);
+                }
+                else{
+                    INNER.busy = false;
+                }
+        }, 
         //An exponential decay function
         get_pixel_quad(__left, __total){
              var _x = -10*Math.log(Math.abs(__left/__total));
